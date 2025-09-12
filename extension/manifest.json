@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "LocalStock - Local Product Availability",
+  "version": "1.0.0",
+  "description": "Shows real-time local product availability on e-commerce sites",
+  
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "https://*.amazon.com/*",
+    "https://*.walmart.com/*",
+    "http://localhost:5000/*",
+    "https://*.replit.dev/*",
+    "https://*.replit.app/*",
+    "https://*.replit.co/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.amazon.com/*/dp/*",
+        "https://*.amazon.com/dp/*",
+        "https://*.amazon.com/gp/product/*",
+        "https://*.walmart.com/ip/*"
+      ],
+      "js": [
+        "utils/dom-extractor.js",
+        "utils/cache.js", 
+        "utils/ui-components.js",
+        "content-script.js"
+      ],
+      "css": ["styles/content.css"],
+      "run_at": "document_end"
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LocalStock Settings"
+  },
+  
+  "options_page": "options.html",
+  
+  "icons": {
+    "16": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMkwzIDVWMTNIMTNWNUw4IDJaIiBzdHJva2U9IiMzMzc0ZGYiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSI4IiBjeT0iOSIgcj0iMiIgZmlsbD0iIzEwYjk4MSIvPgo8L3N2Zz4K",
+    "32": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDRMNiAxMFYyNkgyNlYxMEwxNiA0WiIgc3Ryb2tlPSIjMzM3NGRmIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxOCIgcj0iNCIgZmlsbD0iIzEwYjk4MSIvPgo8L3N2Zz4K",
+    "48": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTI0IDZMOSAxNVYzOUgzOVYxNUwyNCA2WiIgc3Ryb2tlPSIjMzM3NGRmIiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9Im5vbmUiLz4KPGNpcmNsZSBjeD0iMjQiIGN5PSIyNyIgcj0iNiIgZmlsbD0iIzEwYjk4MSIvPgo8L3N2Zz4K",
+    "128": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02NCAxNkwyNCA0MEgxMDRMNjQgMTZaIiBzdHJva2U9IiMzMzc0ZGYiIHN0cm9rZS13aWR0aD0iOCIgZmlsbD0ibm9uZSIvPgo8cGF0aCBkPSJNMjQgNDBWMTA0SDEwNFY0MEwyNCA0MFoiIHN0cm9rZT0iIzMzNzRkZiIgc3Ryb2tlLXdpZHRoPSI4IiBmaWxsPSJub25lIi8+CjxjaXJjbGUgY3g9IjY0IiBjeT0iNzIiIHI9IjE2IiBmaWxsPSIjMTBiOTgxIi8+Cjwvc3ZnPgo="
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["styles/content.css"],
+      "matches": ["https://*.amazon.com/*", "https://*.walmart.com/*"]
+    }
+  ]
+}

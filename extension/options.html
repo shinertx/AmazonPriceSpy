@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStock Settings</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8fafc;
+            color: #1f2937;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+        
+        .setting-group {
+            margin-bottom: 24px;
+        }
+        
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-label {
+            flex: 1;
+            margin-right: 16px;
+        }
+        
+        .setting-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .setting-description {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 28px;
+            background: #cbd5e1;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.enabled {
+            background: #3b82f6;
+        }
+        
+        .toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-switch.enabled .toggle-knob {
+            transform: translateX(20px);
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            min-width: 0;
+        }
+        
+        .input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .input-zip {
+            width: 80px;
+            text-align: center;
+        }
+        
+        .input-number {
+            width: 60px;
+            text-align: center;
+        }
+        
+        .select {
+            padding: 8px 32px 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3e%3cpath fill='%23666' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 12px;
+        }
+        
+        .select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .btn:hover {
+            background: #f9fafb;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border-color: #6b7280;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .success-message {
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        
+        .debug-section {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .debug-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+        
+        .debug-info {
+            font-size: 12px;
+            font-family: monospace;
+            color: #78350f;
+            background: #fef9e7;
+            padding: 8px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            padding: 24px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .version {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📍 LocalStock</div>
+            <div class="tagline">Find it nearby, get it today</div>
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            Settings saved successfully!
+        </div>
+        
+        <!-- Main Settings -->
+        <div class="card">
+            <div class="card-title">General Settings</div>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="setting-title">Enable LocalStock</div>
+                    <div class="setting-description">Show local availability when viewing products</div>
+                </div>
+                <div class="toggle-switch" id="enabledToggle">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="setting-title">ZIP Code</div>
+                    <div class="setting-description">Your location for local availability search</div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="zipCodeInput" class="input input-zip" placeholder="12345" maxlength="5">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Display Preferences -->
+        <div class="card">
+            <div class="card-title">Display Preferences</div>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="setting-title">Show Pickup Options</div>
+                    <div class="setting-description">Display in-store pickup availability</div>
+                </div>
+                <div class="toggle-switch" id="showPickupToggle">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="setting-title">Show Delivery Options</div>
+                    <div class="setting-description">Display same-day delivery availability</div>
+                </div>
+                <div class="toggle-switch" id="showDeliveryToggle">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="setting-title">Maximum Distance</div>
+                    <div class="setting-description">Maximum distance for pickup locations</div>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="maxDistanceInput" class="input input-number" min="1" max="50" value="5">
+                    <span>miles</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Advanced Settings -->
+        <div class="card">
+            <div class="card-title">Advanced Settings</div>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="setting-title">Debug Mode</div>
+                    <div class="setting-description">Show detailed logging in browser console</div>
+                </div>
+                <div class="toggle-switch" id="debugModeToggle">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            
+            <div class="debug-section" id="debugSection" style="display: none;">
+                <div class="debug-title">Debug Information</div>
+                <div class="debug-info" id="debugInfo">Loading...</div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-secondary" id="resetBtn">Reset to Defaults</button>
+            <button class="btn" id="clearCacheBtn">Clear Cache</button>
+            <button class="btn btn-primary" id="saveBtn">Save Settings</button>
+        </div>
+        
+        <div class="footer">
+            <div class="version">LocalStock Extension v1.0.0</div>
+            <div>Real-time local product availability</div>
+        </div>
+    </div>
+    
+    <script src="options.js"></script>
+</body>
+</html>

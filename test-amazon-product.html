@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sony WH-1000XM5 Wireless Noise Canceling Headphones - Amazon.com</title>
+    <script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Product",
+        "name": "Sony WH-1000XM5 Wireless Noise Canceling Headphones",
+        "brand": "Sony",
+        "gtin12": "027242920156",
+        "sku": "B0BXQBHL5D",
+        "offers": {
+            "@type": "Offer",
+            "price": "349.99",
+            "priceCurrency": "USD",
+            "availability": "http://schema.org/InStock"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="dp">
+        <div id="centerCol">
+            <h1 id="productTitle">Sony WH-1000XM5 Wireless Noise Canceling Headphones</h1>
+            
+            <div id="brand">Sony</div>
+            
+            <div class="a-price" data-testid="price-current">
+                <span class="a-price-whole">349</span>
+                <span class="a-price-fraction">99</span>
+            </div>
+            
+            <div id="variation_color_name">
+                <span class="selection">Black</span>
+            </div>
+            
+            <div id="variation_size_name">
+                <span class="selection">One Size</span>
+            </div>
+            
+            <div id="feature-bullets">
+                <ul>
+                    <li>UPC: 027242920156</li>
+                    <li>Wireless connectivity with Bluetooth 5.2</li>
+                    <li>Up to 30 hours of battery life</li>
+                </ul>
+            </div>
+            
+            <img id="landingImage" src="https://example.com/headphones.jpg" alt="Sony Headphones">
+        </div>
+    </div>
+    
+    <div data-asin="B0BXQBHL5D"></div>
+    
+    <script src="extension/utils/dom-extractor.js"></script>
+    <script>
+        // Test the DOM extraction
+        window.location.pathname = '/dp/B0BXQBHL5D';
+        
+        const extractor = new DOMExtractor('amazon');
+        const productData = extractor.extractProductData();
+        
+        console.log('Extracted Product Data:', JSON.stringify(productData, null, 2));
+        
+        // Display results
+        document.body.innerHTML += `
+            <div style="margin: 20px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+                <h2>DOM Extraction Test Results</h2>
+                <pre style="background: white; padding: 10px; border-radius: 4px; overflow: auto;">
+${JSON.stringify(productData, null, 2)}
+                </pre>
+            </div>
+        `;
+    </script>
+</body>
+</html>
