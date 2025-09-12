@@ -1,0 +1,74 @@
+Problem Context:
+Online shoppers can’t easily tell if the exact product they’re viewing (on Amazon/Walmart/other commerce surfaces) is actually obtainable nearby today for pickup or rapid delivery. Existing pages hide real-time local availability; users either overpay for slow shipping or manually hunt across retailers. Signal must be trustworthy, quiet unless true, and fast.
+
+Core Problem:
+Given a product detail page (PDP), determine: Are there nearby legitimate stores that currently have this exact SKU/GTIN variant in stock with same‑day pickup or near‑immediate delivery, and can we surface that with minimal friction and zero noise when uncertain?
+
+Constraints / Principles:
+- Zero annoyance: show nothing unless confidence and economics meet thresholds.
+- No broad permissions; privacy‑respecting (storage only; explicit host patterns).
+- Fast perceived latency (ideally sub‑300ms after initial extraction).
+- Must survive dynamic PDP mutations (variant changes) without thrash.
+- Robust against partial product data (missing gtin/upc/asin on some pages).
+- Service worker (MV3) may sleep—caching should smooth reactivation.
+- Avoid UI clutter: a single affordance (pill) escalating to detail panel.
+- Extensible to more retailers with minimal branching.
+
+Input Signals (extracted from DOM / JSON-LD):
+- Identifiers: gtin / upc / ean / asin / sku (any that can key a resolve).
+- Descriptive: brand, title, variant summary, price, currency, images.
+- Platform: amazon | walmart | honey (extensible).
+- Optional user ZIP (from options) to refine local search.
+- Page URL (context).
+
+Resolution Flow:
+1. Detect platform + verify PDP heuristics.
+2. Extract product identifiers (prefer structured data; fallback to DOM tables, URL patterns).
+3. Build normalized payload { identifiers, brand, title, variant, price, currency, attributes, platform, url, zip }.
+4. Send single resolve request to backend (/resolve) via background service worker.
+5. Background performs POST; caches response (in‑memory + session storage) keyed by {gtin, zip, platform, variant}.
+6. On response, apply guard filters (eligible flag, margin_ok, min trust, max ETA).
+7. If passes: render floating pill. On user click: slide‑in panel with ordered offers.
+
+Offer Prioritization:
+- Prefer pickup over delivery.
+- Then lowest ETA.
+- Then lowest price.
+
+UI Behavior:
+- Silent unless all guard conditions satisfied.
+- Floating pill bottom-right; panel slides in over dim backdrop.
+- Panel lists offers: store name, distance, ETA, price, freshness (last_seen), mode-specific CTAs (pickup/deeplink, delivery link).
+- Dismiss via close button, backdrop click, or outside click.
+
+Caching Strategy:
+- 5‑minute TTL per unique (gtin, zip, platform, variant) to avoid redundant network hits.
+- Basic oldest-first eviction after size threshold (>200 entries).
+
+Failure Modes (all silent):
+- No identifiers extracted.
+- Network error / non-200.
+- eligible=false or guard/margin/trust/ETA fail.
+- All offers filtered out.
+
+Non-Goals (current phase):
+- Broad host wildcard permissions.
+- Heavy telemetry (optional future behind flag).
+- Complex personalization or price negotiation.
+- Reading user account or sensitive data.
+
+Success Metrics (qualitative/initial):
+- False positive rate (UI shown when not truly in-stock locally) near zero in manual QA.
+- Time to visible pill after stable DOM < 300ms median after cache warm.
+- No console errors or runaway mutation loops.
+- Easy addition of new domain requires only platform branch + manifest host pattern.
+
+Future Extensions:
+- Additional retailers (Target, Best Buy).
+- International Amazon locales (flag-gated).
+- Telemetry (resolve_start/ok/fail, pill_render, panel_open) via sendBeacon.
+- Accessibility enhancements (focus trap, ARIA roles).
+- Adjustable thresholds from options (internal testing).
+
+LLM Prompt Style Summary:
+“You’re helping a Chrome MV3 extension that, on supported e-commerce product pages, quietly extracts product identifiers (gtin/upc/ean/asin/sku, brand, title, variant, price, currency, images) using JSON-LD first and DOM fallbacks. It sends a single debounced request to a /resolve backend to learn if same-day pickup or rapid delivery offers exist nearby. If and only if the backend returns eligible offers passing margin/trust/ETA thresholds, the extension injects a floating pill; clicking reveals a slide-in panel listing vetted offers (store, distance, ETA, price, links). All failures are silent. Service worker caches responses 5 minutes keyed by {gtin, zip, platform, variant}. MutationObserver watches variant changes. User can disable globally or supply a ZIP via an options page. Goal: zero-noise, high-confidence local availability signal, minimal permissions, easily extensible to new retailers.”
