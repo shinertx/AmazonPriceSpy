@@ -1,4 +1,4 @@
-import { sql, relations } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { pgTable, text, varchar, jsonb, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -150,27 +150,6 @@ export type Store = typeof stores.$inferSelect;
 export type InsertStore = z.infer<typeof insertStoreSchema>;
 export type Offer = typeof offers.$inferSelect;
 export type InsertOffer = z.infer<typeof insertOfferSchema>;
-// Relations
-export const productsRelations = relations(products, ({ many }) => ({
-  offers: many(offers),
-}));
-
-export const storesRelations = relations(stores, ({ many }) => ({
-  offers: many(offers),
-}));
-
-export const offersRelations = relations(offers, ({ one }) => ({
-  product: one(products, {
-    fields: [offers.productId],
-    references: [products.id],
-  }),
-  store: one(stores, {
-    fields: [offers.storeId],
-    references: [stores.id],
-  }),
-}));
-
-// Types
 export type ResolveRequest = z.infer<typeof resolveRequestSchema>;
 export type ResolveResponse = z.infer<typeof resolveResponseSchema>;
 export type ResolveRequestRecord = typeof resolveRequests.$inferSelect;
