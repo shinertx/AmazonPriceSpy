@@ -172,13 +172,12 @@
         return;
       }
       
-      if (result?.eligible && result?.offers?.length > 0) {
-        // Show UI with offers
-        uiComponents?.show(result);
-      } else {
-        // Hide UI - no eligible offers
+      if (result?.error) {
         uiComponents?.hide();
+        return;
       }
+      // Always show a pill; it will display "0 nearby" and open a panel with a friendly message
+      uiComponents?.show(result || { offers: [] });
       
     } catch (error) {
       console.error('LocalStock: Extraction/resolve failed', error);

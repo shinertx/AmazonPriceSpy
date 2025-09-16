@@ -1,7 +1,12 @@
 // LocalStock Extension Background Service Worker
 // Handles product resolution requests and manages caching
 
-const API_BASE = 'http://localhost:5000/api'; // Will be updated for production
+const DEFAULT_RESOLVE_BASE = 'http://localhost:5000/api'; // Resolve API (default)
+// Optional: backend ingestion API (from your external backend doc)
+// Default to localhost:8000; override via storage or SET_INGEST_CONFIG message
+const DEFAULT_INGEST_BASE = 'http://localhost:8000';
+let INGEST_API_BASE = DEFAULT_INGEST_BASE;
+let INGEST_API_KEY = '';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const MAX_CACHE_ENTRIES = 200;
 
@@ -22,7 +27,10 @@ chrome.runtime.onInstalled.addListener(() => {
     showDelivery: true,
     showPickup: true,
     maxDistance: 5,
-    debugMode: false
+  debugMode: false,
+  resolveApiBase: DEFAULT_RESOLVE_BASE,
+  ingestApiBase: DEFAULT_INGEST_BASE,
+  ingestApiKey: ''
   });
 });
 
@@ -41,7 +49,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'GET_SETTINGS') {
     chrome.storage.sync.get([
       'enabled', 'zipCode', 'showDelivery', 'showPickup', 
-      'maxDistance', 'debugMode'
+      'maxDistance', 'debugMode', 'resolveApiBase', 'ingestApiBase', 'ingestApiKey'
     ], sendResponse);
     return true;
   }
@@ -52,10 +60,86 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   }
+
+  // Ping server health (debug helper)
+  if (message.type === 'PING_SERVER') {
+    getResolveBase().then((base) => {
+      fetch(`${base}/health`)
+        .then(r => r.json())
+        .then(data => sendResponse({ ok: true, data }))
+        .catch(err => sendResponse({ ok: false, error: err.message }));
+    });
+    return true; 
+  }
+
+  // Clear caches: local (background) + server-side
+  if (message.type === 'CLEAR_CACHE') {
+    try {
+      resolveCache.clear();
+      requestDebounce.clear();
+    } catch {}
+    getResolveBase().then((base) => {
+      fetch(`${base}/cache`, { method: 'DELETE' })
+        .then(r => r.json().catch(() => ({})))
+        .then(data => sendResponse({ ok: true, data }))
+        .catch(err => sendResponse({ ok: false, error: err.message }));
+    });
+    return true; 
+  }
+
+  // Configure resolve API base (so we can point to a remote backend)
+  if (message.type === 'SET_RESOLVE_BASE') {
+    const { resolveApiBase } = message.data || {};
+    if (typeof resolveApiBase === 'string' && resolveApiBase) {
+      chrome.storage.sync.set({ resolveApiBase }, () => sendResponse({ success: true }));
+      return true;
+    }
+    sendResponse({ success: false, error: 'Invalid resolveApiBase' });
+    return true;
+  }
+
+  // Configure ingestion (optionally set via options page or programmatically)
+  if (message.type === 'SET_INGEST_CONFIG') {
+    const { ingestApiBase, ingestApiKey } = message.data || {};
+    if (typeof ingestApiBase === 'string') INGEST_API_BASE = ingestApiBase;
+    if (typeof ingestApiKey === 'string') INGEST_API_KEY = ingestApiKey;
+    chrome.storage.sync.set({ ingestApiBase: INGEST_API_BASE, ingestApiKey: INGEST_API_KEY }, () => {
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  // Optional pass-throughs to ingestion endpoints for testing/external use
+  if (message.type === 'INGEST_OFFER') {
+    postIngest('/api/ingest/offer', message.data)
+      .then(sendResponse)
+      .catch(err => sendResponse({ error: err.message }));
+    return true;
+  }
+  if (message.type === 'INGEST_OFFERS_BULK') {
+    postIngest('/api/ingest/offers/bulk', message.data)
+      .then(sendResponse)
+      .catch(err => sendResponse({ error: err.message }));
+    return true;
+  }
+  if (message.type === 'INGEST_PRODUCT') {
+    postIngest('/api/ingest/product', message.data)
+      .then(sendResponse)
+      .catch(err => sendResponse({ error: err.message }));
+    return true;
+  }
+  if (message.type === 'INGEST_STORE') {
+    postIngest('/api/ingest/store', message.data)
+      .then(sendResponse)
+      .catch(err => sendResponse({ error: err.message }));
+    return true;
+  }
 });
 
 async function handleProductResolve(productData, tabId) {
   try {
+  // Resolve base URL (allows pointing to remote backend)
+  const resolveBase = await getResolveBase();
     // Get user settings
     const settings = await new Promise(resolve => {
       chrome.storage.sync.get([
@@ -113,7 +197,7 @@ async function handleProductResolve(productData, tabId) {
       }
       
       // Make API request
-      const response = await fetch(`${API_BASE}/resolve`, {
+  const response = await fetch(`${resolveBase}/resolve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,6 +252,48 @@ async function handleProductResolve(productData, tabId) {
       offers: [] 
     };
   }
+}
+
+// ----------------------------
+// Ingestion helpers (optional)
+// ----------------------------
+async function getResolveBase() {
+  return new Promise(resolve => {
+    chrome.storage.sync.get(['resolveApiBase'], ({ resolveApiBase }) => {
+      if (typeof resolveApiBase === 'string' && resolveApiBase) {
+        resolve(resolveApiBase.replace(/\/$/, ''));
+      } else {
+        resolve(DEFAULT_RESOLVE_BASE);
+      }
+    });
+  });
+}
+async function getIngestConfig() {
+  return new Promise(resolve => {
+    chrome.storage.sync.get(['ingestApiBase', 'ingestApiKey'], ({ ingestApiBase, ingestApiKey }) => {
+      resolve({
+        base: typeof ingestApiBase === 'string' && ingestApiBase ? ingestApiBase : INGEST_API_BASE,
+        apiKey: typeof ingestApiKey === 'string' ? ingestApiKey : INGEST_API_KEY,
+      });
+    });
+  });
+}
+
+async function postIngest(path, body) {
+  const { base, apiKey } = await getIngestConfig();
+  if (!base) throw new Error('Ingestion base URL not configured');
+  const url = base.replace(/\/$/, '') + path;
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['X-API-Key'] = apiKey;
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+  if (resp.status === 401) throw new Error('Unauthorized (check X-API-Key)');
+  if (resp.status === 503) throw new Error('Ingestion disabled (503)');
+  if (!resp.ok) throw new Error(`Ingestion failed: ${resp.status}`);
+  return resp.json().catch(() => ({}));
 }
 
 function generateCacheKey(productData, zipCode) {

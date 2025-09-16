@@ -173,6 +173,59 @@ export class MemStorage implements IStorage {
       trustScore: 85,
       isEligible: true,
     });
+
+    // Additional sample: Tide Free & Gentle (matches your recent Amazon test ASIN)
+    const tide = await this.createProduct({
+      gtin: null,
+      upc: null,
+      asin: "B085V5ZMV9",
+      brand: "Tide",
+      title: "Tide Free & Gentle, Liquid Laundry Detergent Soap, Unscented, Hypoallergenic for Sensitive Skin and Free of Dyes, HE Compatible, 64 Loads, 84 fl oz",
+      variant: null,
+      price: "$11.97",
+      currency: "USD",
+      images: [] as string[],
+      platform: "amazon",
+      url: "https://www.amazon.com/dp/B085V5ZMV9",
+      attributes: {} as Record<string, any>,
+    });
+
+    // Offers for Tide at Target and Walmart
+    await this.createOffer({
+      productId: tide.id,
+      storeId: targetStore.id,
+      price: "$11.99",
+      currency: "USD",
+      availabilityType: "pickup",
+      eta: "2 hours",
+      etaMinutes: 120,
+      distance: "2.0 mi",
+      distanceMiles: 2,
+      inStock: true,
+      stockLevel: 8,
+      deepLink: "https://www.target.com/p/tide-free-gentle-84-fl-oz/-/A-00000000",
+      margin: 30,
+      trustScore: 90,
+      isEligible: true,
+    });
+
+    await this.createOffer({
+      productId: tide.id,
+      storeId: walmartStore.id,
+      price: "$11.47",
+      currency: "USD",
+      availabilityType: "delivery",
+      eta: "Today by 6 PM",
+      etaMinutes: 360,
+      distance: "same-day delivery",
+      distanceMiles: 0,
+      inStock: true,
+      stockLevel: 10,
+      deepLink: "https://www.walmart.com/ip/tide-free-gentle/000000",
+      margin: 28,
+      trustScore: 85,
+      isEligible: true,
+    });
   }
 
   // User methods

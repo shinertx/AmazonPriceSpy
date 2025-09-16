@@ -369,10 +369,7 @@ class LocalStockUI {
   show(resolveResult) {
     this.currentOffers = resolveResult.offers || [];
     
-    if (this.currentOffers.length === 0) {
-      this.hide();
-      return;
-    }
+  // Keep pill visible even when there are zero offers
     
     if (!this.pillElement) {
       this.createPill();
